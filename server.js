@@ -4,159 +4,173 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const fs = require("fs");
-const path = require("path");
 const Groq = require("groq-sdk");
 
 const app = express();
-const PORT = 4000;
-
-// ─────────────────────────────────────────────
-// CONFIG
-// ─────────────────────────────────────────────
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-
-  filename: function (req, file, cb) {
-
-    const ext =
-      file.mimetype.includes("webm")
-        ? ".webm"
-        : ".wav";
-
-    cb(
-      null,
-      Date.now() + ext
-    );
-  }
+  apiKey: process.env.GROQ_API_KEY
 });
 
 const upload = multer({
-  storage,
-  limits: {
-    fileSize: 25 * 1024 * 1024
-  }
+  dest: "uploads/"
 });
 
 // ─────────────────────────────────────────────
-// HTML
+// TEST ROUTE
 // ─────────────────────────────────────────────
-
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.json({
+    status: "ok",
+    message: "Voice Contact API running"
+  });
 });
 
 // ─────────────────────────────────────────────
-// TRANSCRIBE
+// TRANSCRIBE AUDIO
 // ─────────────────────────────────────────────
-
-app.post(
-  "/ai/transcribe",
-  upload.single("audio"),
-  async (req, res) => {
+app.post("/ai/transcribe", upload.single("audio"), async (req, res) => {
+  try {
     console.log(req.file);
-    try {
 
-      if (!req.file) {
-        return res.status(400).json({
-          error: "No audio file uploaded",
-        });
-      }
+    // adicionar extensão .webm
+    const audioPath = req.file.path + ".webm";
 
-      const transcription =
-        await groq.audio.transcriptions.create({
-          file: fs.createReadStream(req.file.path),
-          model: "whisper-large-v3",
-          response_format: "text",
-        });
+    fs.renameSync(req.file.path, audioPath);
 
-      fs.unlinkSync(req.file.path);
+    const transcription = await groq.audio.transcriptions.create({
+      file: fs.createReadStream(audioPath),
+      model: "whisper-large-v3",
+      response_format: "text"
+    });
 
-      res.json({
-        text: transcription,
-      });
+    // apagar ficheiro depois
+    fs.unlinkSync(audioPath);
 
-    } catch (error) {
+    res.json({
+      text: transcription
+    });
 
-      console.error("TRANSCRIBE ERROR:");
-      console.error(error);
+  } catch (error) {
+    console.error("TRANSCRIBE ERROR:");
+    console.error(error);
 
-      if (
-        req.file?.path &&
-        fs.existsSync(req.file.path)
-      ) {
-        fs.unlinkSync(req.file.path);
-      }
-
-      res.status(500).json({
-        error: "Transcription failed",
-      });
-    }
+    res.status(500).json({
+      error: error.message
+    });
   }
-);
+});
 
 // ─────────────────────────────────────────────
-// PARSE CONTACT
+// PARSE CONTACT INFO
 // ─────────────────────────────────────────────
-
 app.post("/ai/parse", async (req, res) => {
   try {
-
     const text = req.body.text || "";
 
-    const response =
-      await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          {
-            role: "user",
-            content: `
-Extract contact information from this text:
+    // limpar transcrição
+    const cleanResponse = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content:
+            `Clean up this voice transcript into clear text. ` +
+            `Fix grammar and punctuation. ` +
+            `Return only the cleaned text:\n\n${text}`
+        }
+      ]
+    });
 
-"${text}"
+    const cleaned =
+      cleanResponse.choices[0].message.content.trim();
 
-Reply ONLY with valid JSON.
-
-{
-  "name": "",
-  "company": "",
-  "role": "",
-  "location": "",
-  "topics": [],
-  "notes": ""
-}
-            `,
-          },
-        ],
-      });
+    // extrair contacto
+    const parseResponse = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content:
+            `Extract contact information from this text:\n\n${cleaned}\n\n` +
+            `Reply ONLY with valid JSON:\n` +
+            `{"name":"","company":"","role":"","location":"","topics":[],"energy":"","follow_up":"","notes":""}`
+        }
+      ]
+    });
 
     const raw =
-      response.choices[0].message.content
+      parseResponse.choices[0].message.content
+        .trim()
         .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
+        .replace(/```/g, "");
 
     const contact = JSON.parse(raw);
+
+    contact.transcript = cleaned;
+
+    // sugestão IA
+    const actionResponse = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content:
+            `Based on this contact:\n${JSON.stringify(contact)}\n\n` +
+            `Suggest one follow-up action in max 2 sentences.`
+        }
+      ]
+    });
+
+    contact.suggested_action =
+      actionResponse.choices[0].message.content.trim();
 
     res.json(contact);
 
   } catch (error) {
-
     console.error("PARSE ERROR:");
     console.error(error);
 
     res.status(500).json({
-      error: "Parse failed",
+      error: error.message
+    });
+  }
+});
+
+// ─────────────────────────────────────────────
+// SEARCH CONTACTS
+// ─────────────────────────────────────────────
+app.post("/ai/search", async (req, res) => {
+  try {
+    const { query, contacts } = req.body;
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content:
+            `You have these contacts:\n${JSON.stringify(contacts)}\n\n` +
+            `User question:\n${query}\n\n` +
+            `Reply helpfully and concisely.`
+        }
+      ]
+    });
+
+    res.json({
+      answer: response.choices[0].message.content
+    });
+
+  } catch (error) {
+    console.error("SEARCH ERROR:");
+    console.error(error);
+
+    res.status(500).json({
+      error: error.message
     });
   }
 });
@@ -164,9 +178,8 @@ Reply ONLY with valid JSON.
 // ─────────────────────────────────────────────
 // START SERVER
 // ─────────────────────────────────────────────
+const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  console.log(
-    `Server running on http://localhost:${PORT}`
-  );
+  console.log(`Server running on http://localhost:${PORT}`);
 });
