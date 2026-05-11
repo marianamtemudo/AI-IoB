@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contaq</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff; --surface: #ffffff;
+      --border: rgba(0,0,0,0.09); --border-md: rgba(0,0,0,0.18);
+      --text: #1a1a18; --text-muted: #6b6b67;
+      --radius-md: 8px; --radius-lg: 14px;
+      --purple: #2414db; --purple-light: #EEEDFE; --purple-dark: #2815da;
+      --red: #E24B4A; --green: #1D9E75; --amber: #c47a1e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #18181a; --surface: #232325;
+        --border: rgba(255,255,255,0.09); --border-md: rgba(255,255,255,0.18);
+        --text: #f0efe9; --text-muted: #9a9a96; --purple-light: #2e2a5a;
+      }
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2.5rem 1rem; }
+    .container { max-width: 660px; margin: 0 auto; }
+ 
+    /* Header */
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header h1 { font-family: 'DM Serif Display', serif; font-size: 2.5rem; font-weight: 400; letter-spacing: -0.5px; line-height: 1.15; }
+    .header h1 em { font-style: italic; color: var(--purple); }
+    .header p { margin-top: 0.5rem; font-size: 14px; color: var(--text-muted); font-weight: 300; }
+    .badge-row { display: flex; justify-content: center; gap: 8px; margin-top: 0.6rem; flex-wrap: wrap; }
+    .badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; border: 0.5px solid var(--border-md); color: var(--text-muted); letter-spacing: 0.04em; }
+ 
+    /* Cards */
+    .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; }
+    .section-label { display: block; font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+ 
+    /* API URL config */
+    .url-row { display: flex; gap: 8px; }
+    .url-row input { flex: 1; font-family: 'DM Mono', monospace; font-size: 13px; padding: 8px 12px; border: 0.5px solid var(--border-md); border-radius: var(--radius-md); background: var(--bg); color: var(--text); outline: none; }
+    .url-row input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,0.12); }
+    .btn-save { padding: 0 1rem; height: 37px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; background: var(--purple); color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; white-space: nowrap; }
+    .btn-save:hover { background: var(--purple-dark); }
+    .status-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-md); flex-shrink: 0; }
+    .dot.ready { background: var(--green); }
+    .dot.error { background: var(--red); }
+    .info-box { margin-top: 10px; padding: 10px 12px; background: var(--purple-light); border-radius: var(--radius-md); font-size: 12px; color: var(--purple); line-height: 1.55; }
+ 
+    /* Recorder */
+    .recorder-card { text-align: center; padding: 2rem 1.5rem; }
+    .timer { font-family: 'DM Mono', monospace; font-size: 2.4rem; font-weight: 400; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .waveform { display: flex; align-items: center; justify-content: center; gap: 4px; height: 44px; margin: 0.75rem 0; }
+    .wave-bar { width: 4px; border-radius: 3px; background: rgba(83,74,183,0.35); height: 6px; }
+    .wave-bar.active { animation: wave 0.85s ease-in-out infinite; }
+    @keyframes wave { 0%,100%{height:6px} 50%{height:34px} }
+    .wave-bar:nth-child(2).active{animation-delay:.1s} .wave-bar:nth-child(3).active{animation-delay:.22s}
+    .wave-bar:nth-child(4).active{animation-delay:.32s} .wave-bar:nth-child(5).active{animation-delay:.22s}
+    .wave-bar:nth-child(6).active{animation-delay:.1s} .wave-bar:nth-child(7).active{animation-delay:.18s}
+    .mic-btn { width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--purple); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; color: var(--purple); transition: all 0.2s; margin-bottom: 0.85rem; }
+    .mic-btn:hover { background: var(--purple-light); }
+    .mic-btn.recording { background: var(--red); border-color: var(--red); color: #fff; animation: pulse 1.2s infinite; }
+    .mic-btn:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,.3)} 50%{box-shadow:0 0 0 14px rgba(226,75,74,0)} }
+    .rec-label { font-size: 13px; color: var(--text-muted); }
+    .action-row { display: flex; gap: 8px; justify-content: center; margin-top: 1rem; }
+    .btn { padding: 0.5rem 1.3rem; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; border-radius: var(--radius-md); cursor: pointer; border: 0.5px solid var(--border-md); background: transparent; color: var(--text); transition: background 0.15s; }
+    .btn:hover { background: var(--bg); }
+    .btn:disabled { opacity: 0.38; cursor: default; pointer-events: none; }
+    .btn.primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+    .btn.primary:hover { background: var(--purple-dark); }
+ 
+    /* Loading */
+    .loading { display: none; align-items: center; justify-content: center; gap: 10px; padding: 1rem; font-size: 14px; color: var(--text-muted); }
+    .loading.visible { display: flex; }
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--border-md); border-top-color: var(--purple); border-radius: 50%; animation: spin .75s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+ 
+    /* Error */
+    .error-msg { display: none; padding: 10px 14px; margin-bottom: 10px; background: #fff0f0; border: 0.5px solid rgba(226,75,74,0.3); border-radius: var(--radius-md); font-size: 13px; color: var(--red); line-height: 1.5; }
+    .error-msg.visible { display: block; }
+ 
+    /* Results */
+    .results { display: none; }
+    .results.visible { display: block; }
+    .card-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 6px; }
+    .transcript-text { font-family: 'DM Serif Display', serif; font-size: 17px; line-height: 1.75; }
+    .copy-btn { float: right; font-size: 12px; padding: 3px 10px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: transparent; color: var(--text-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 4px; }
+    .copy-btn:hover { background: var(--bg); }
+ 
+    /* Contact card */
+    .contact-grid { display: flex; flex-direction: column; }
+    .contact-row { display: flex; align-items: flex-start; border-bottom: 0.5px solid var(--border); padding: 0.75rem 0; }
+    .contact-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .contact-row:first-child { padding-top: 0; }
+    .contact-lbl { width: 130px; min-width: 130px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); padding-top: 2px; display: flex; align-items: flex-start; gap: 6px; }
+    .contact-val { flex: 1; font-size: 15px; line-height: 1.6; color: var(--text); }
+    .contact-val.empty { color: var(--text-muted); font-style: italic; font-size: 14px; }
+    .contact-val.multiline { white-space: pre-line; font-size: 14px; }
+ 
+    /* Energy badge */
+    .energy-badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 20px; }
+    .energy-positive { background: #e6f7f0; color: #0f6e56; }
+    .energy-neutral { background: #f0f0f0; color: #555; }
+    .energy-negative { background: #fce8e8; color: #a32d2d; }
+ 
+    /* Suggested action */
+    .action-box { margin-top: 0; padding: 12px 14px; background: var(--purple-light); border-radius: var(--radius-md); font-size: 14px; color: var(--purple); line-height: 1.6; }
+ 
+    /* Topics */
+    .topics-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .topic-tag { font-size: 12px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid var(--border-md); color: var(--text-muted); background: var(--bg); }
+ 
+    /* Contacts list */
+    .contacts-list { display: flex; flex-direction: column; gap: 8px; }
+    .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: border-color 0.15s; }
+    .contact-item:hover { border-color: var(--purple); }
+    .contact-item-name { font-size: 14px; font-weight: 500; }
+    .contact-item-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .contact-item-arrow { color: var(--text-muted); font-size: 16px; }
+    .empty-state { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 14px; }
+ 
+    /* Search */
+    .search-row { display: flex; gap: 8px; }
+    .search-row input { flex: 1; font-size: 13px; padding: 8px 12px; border: 0.5px solid var(--border-md); border-radius: var(--radius-md); background: var(--bg); color: var(--text); outline: none; font-family: 'DM Sans', sans-serif; }
+    .search-row input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,0.12); }
+    .search-answer { margin-top: 10px; padding: 12px 14px; background: var(--purple-light); border-radius: var(--radius-md); font-size: 14px; color: var(--purple); line-height: 1.6; display: none; }
+    .search-answer.visible { display: block; }
+ 
+    .foot-note { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 1.75rem; padding: 0.85rem 1rem; border: 0.5px dashed var(--border); border-radius: var(--radius-md); line-height: 1.65; }
+  </style>
+</head>
+<body>
+<div class="container">
+ 
+  <div class="header">
+    <h1>Contaq</h1>
+    <p>Enter the person's information and save their contact details.</p>
+  </div>
+ 
+  <!-- Backend URL -->
+  <div class="card">
+    <span class="section-label">Backend URL</span>
+    <div class="url-row">
+      <input type="text" id="backendUrl" placeholder="https://o-teu-projeto.onrender.com" />
+      <button class="btn-save" onclick="saveUrl()">Record</button>
+    </div>
+    <div class="status-row">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Waiting for backend URL</span>
+    </div>
+    <div class="info-box">
+      Paste your server's URL here in Render (or <strong>http://localhost:4000</strong> for local tests).
+    </div>
+  </div>
+ 
+  <!-- Recorder -->
+  <div class="card recorder-card">
+    <div class="timer" id="timer">00:00</div>
+    <div class="waveform">
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+    <button class="mic-btn" id="micBtn" onclick="toggleRecording()" disabled>
+      <i class="ti ti-microphone"></i>
+    </button>
+    <div class="rec-label" id="recLabel">Enter the backend URL to get started</div>
+    <div class="action-row">
+      <button class="btn" id="clearBtn" onclick="clearAll()" disabled>Clear</button>
+      <button class="btn primary" id="sendBtn" onclick="sendAudio()" disabled>Analizyng &nbsp;↗</button>
+    </div>
+  </div>
+ 
+  <div class="error-msg" id="errorMsg"></div>
+  <div class="loading" id="loadingEl"><div class="spinner"></div><span id="loadingText">Processing...</span></div>
+ 
+  <!-- Results -->
+  <div class="results" id="resultsEl">
+ 
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-file-text"></i> transcription
+        <button class="copy-btn" id="copyBtn" onclick="copyTranscript()"><i class="ti ti-copy"></i> copy</button>
+      </div>
+      <div class="transcript-text" id="transcriptOut"></div>
+    </div>
+ 
+    <div class="card">
+      <div class="card-title"><i class="ti ti-id-badge"></i> contact extracted</div>
+      <div class="contact-grid">
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-user"></i> Name</div>
+          <div class="contact-val" id="fName">—</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-briefcase"></i> Role</div>
+          <div class="contact-val" id="fRole">—</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-building"></i> Company</div>
+          <div class="contact-val" id="fCompany">—</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-map-pin"></i> Location</div>
+          <div class="contact-val" id="fLocation">—</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-mood-smile"></i> Energy</div>
+          <div class="contact-val" id="fEnergy">—</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-tag"></i> Topics</div>
+          <div class="contact-val" id="fTopics">—</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-notes"></i> Notes</div>
+          <div class="contact-val multiline" id="fNotes">—</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-lbl"><i class="ti ti-calendar"></i> Follow-up</div>
+          <div class="contact-val" id="fFollowUp">—</div>
+        </div>
+      </div>
+    </div>
+ 
+    <div class="card">
+      <div class="card-title"><i class="ti ti-bulb"></i> acção sugerida</div>
+      <div class="action-box" id="fSuggestedAction"></div>
+    </div>
+ 
+    <div class="card">
+      <div class="card-title"><i class="ti ti-device-floppy"></i> save contact</div>
+      <div class="action-row" style="justify-content: flex-start; margin-top: 0;">
+        <button class="btn primary" onclick="saveContact()"><i class="ti ti-plus"></i> &nbsp;Save</button>
+      </div>
+    </div>
+ 
+  </div>
+ 
+  <!-- Contactos guardados -->
+  <div class="card" id="contactsCard" style="display:none">
+    <div class="card-title"><i class="ti ti-users"></i> contacts list</div>
+    <div class="contacts-list" id="contactsList"></div>
+  </div>
+ 
+  <!-- Pesquisa IA -->
+  <div class="card" id="searchCard" style="display:none">
+    <div class="card-title"><i class="ti ti-search"></i> search with AI</div>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Ex: quem trabalha em Lisboa?" onkeydown="if(event.key==='Enter') doSearch()" />
+      <button class="btn primary" onclick="doSearch()">↗</button>
+    </div>
+    <div class="search-answer" id="searchAnswer"></div>
+  </div>
+ 
+ 
+</div>
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let mediaRecorder = null, audioChunks = [], audioBlob = null;
+  let isRecording = false, timerInterval = null, seconds = 0;
+  let backendUrl = '';
+  let contacts = JSON.parse(localStorage.getItem('vc_contacts') || '[]');
+  let currentContact = null;
+ 
+  // ── Backend URL ────────────────────────────────────────────────────────────
+  async function saveUrl() {
+    const val = document.getElementById('backendUrl').value.trim().replace(/\/$/, '');
+    if (!val) return;
+    setLoading(true, 'A verificar ligação...');
+    try {
+      const res = await fetch(val + '/');
+      if (!res.ok) throw new Error('Status ' + res.status);
+      backendUrl = val;
+      document.getElementById('statusDot').className = 'dot ready';
+      document.getElementById('statusText').textContent = 'Ligado ✓';
+      document.getElementById('micBtn').disabled = false;
+      document.getElementById('recLabel').textContent = 'clica para gravar';
+      hideError();
+    } catch(e) {
+      document.getElementById('statusDot').className = 'dot error';
+      document.getElementById('statusText').textContent = 'Sem ligação';
+      showError('Não foi possível ligar ao backend: ' + e.message + '. Verifica se o servidor está a correr.');
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  // ── Timer & wave ───────────────────────────────────────────────────────────
+  function tickTimer() {
+    seconds++;
+    document.getElementById('timer').textContent =
+      String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+  }
+  function setWave(on) {
+    document.querySelectorAll('.wave-bar').forEach(b => {
+      b.classList.toggle('active', on);
+      if (on) b.style.animationDelay = (Math.random()*.4)+'s';
+    });
+  }
+ 
+  // ── Recording ─────────────────────────────────────────────────────────────
+  function toggleRecording() { isRecording ? stopRecording() : startRecording(); }
+ 
+  async function startRecording() {
+    hideError();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        stream.getTracks().forEach(t => t.stop());
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('clearBtn').disabled = false;
+        document.getElementById('recLabel').textContent = 'gravação concluída — pronto para analisar';
+      };
+      mediaRecorder.start(250);
+      isRecording = true; seconds = 0;
+      timerInterval = setInterval(tickTimer, 1000);
+      const btn = document.getElementById('micBtn');
+      btn.classList.add('recording'); btn.innerHTML = '<i class="ti ti-square"></i>';
+      document.getElementById('recLabel').textContent = 'a gravar... clica para parar';
+      setWave(true);
+    } catch(e) {
+      showError('Acesso ao microfone negado: ' + e.message);
+    }
+  }
+ 
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    isRecording = false; clearInterval(timerInterval);
+    const btn = document.getElementById('micBtn');
+    btn.classList.remove('recording'); btn.innerHTML = '<i class="ti ti-microphone"></i>';
+    setWave(false);
+  }
+ 
+  function clearAll() {
+    audioBlob = null; audioChunks = []; seconds = 0;
+    document.getElementById('timer').textContent = '00:00';
+    document.getElementById('recLabel').textContent = 'clica para gravar';
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('clearBtn').disabled = true;
+    document.getElementById('resultsEl').classList.remove('visible');
+    currentContact = null;
+    hideError(); setWave(false);
+  }
+ 
+  // ── Send to backend ────────────────────────────────────────────────────────
+  async function sendAudio() {
+    if (!audioBlob || !backendUrl) return;
+    hideError();
+ 
+    // Step 1: transcribe
+    setLoading(true, 'Whisper a transcrever...');
+    let transcription = '';
+    try {
+      const form = new FormData();
+      form.append('audio', audioBlob, 'recording.webm');
+      const res = await fetch(backendUrl + '/ai/transcribe', { method: 'POST', body: form });
+      if (!res.ok) throw new Error('Transcribe ' + res.status);
+      const data = await res.json();
+      transcription = data.text || '';
+    } catch(e) {
+      setLoading(false);
+      showError('Erro na transcrição: ' + e.message);
+      return;
+    }
+ 
+    // Step 2: parse + extract
+    setLoading(true, 'A extrair informação...');
+    try {
+      const res = await fetch(backendUrl + '/ai/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: transcription })
+      });
+      if (!res.ok) throw new Error('Parse ' + res.status);
+      const contact = await res.json();
+      currentContact = contact;
+      renderResults(contact);
+      document.getElementById('resultsEl').classList.add('visible');
+    } catch(e) {
+      showError('Erro na extracção: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderResults(c) {
+    document.getElementById('transcriptOut').textContent = c.transcript || '(sem transcrição)';
+    setField('fName',     c.name);
+    setField('fRole',     c.role);
+    setField('fCompany',  c.company);
+    setField('fLocation', c.location);
+    setField('fNotes',    c.notes, true);
+    setField('fFollowUp', c.follow_up);
+ 
+    // Energy badge
+    const eEl = document.getElementById('fEnergy');
+    if (c.energy) {
+      const cls = { positive: 'energy-positive', neutral: 'energy-neutral', negative: 'energy-negative' }[c.energy] || 'energy-neutral';
+      const labels = { positive: '😊 Positivo', neutral: '😐 Neutro', negative: '😕 Negativo' };
+      eEl.innerHTML = `<span class="energy-badge ${cls}">${labels[c.energy] || c.energy}</span>`;
+    } else {
+      eEl.textContent = 'Não mencionado'; eEl.className = 'contact-val empty';
+    }
+ 
+    // Topics
+    const tEl = document.getElementById('fTopics');
+    if (c.topics && c.topics.length > 0) {
+      tEl.innerHTML = `<div class="topics-row">${c.topics.map(t => `<span class="topic-tag">${t}</span>`).join('')}</div>`;
+      tEl.className = 'contact-val';
+    } else { tEl.textContent = 'Não mencionado'; tEl.className = 'contact-val empty'; }
+ 
+    document.getElementById('fSuggestedAction').textContent = c.suggested_action || '—';
+  }
+ 
+  function setField(id, value, multiline) {
+    const el = document.getElementById(id);
+    if (value && String(value).trim() && value !== 'null') {
+      el.textContent = value;
+      el.className = multiline ? 'contact-val multiline' : 'contact-val';
+    } else {
+      el.textContent = 'Não mencionado';
+      el.className = 'contact-val empty';
+    }
+  }
+ 
+  // ── Save contact ───────────────────────────────────────────────────────────
+  function saveContact() {
+    if (!currentContact) return;
+    const c = { ...currentContact, id: Date.now(), savedAt: new Date().toISOString() };
+    contacts.unshift(c);
+    localStorage.setItem('vc_contacts', JSON.stringify(contacts));
+    renderContactsList();
+    document.getElementById('contactsCard').style.display = 'block';
+    document.getElementById('searchCard').style.display = 'block';
+  }
+ 
+  function renderContactsList() {
+    const list = document.getElementById('contactsList');
+    if (contacts.length === 0) {
+      list.innerHTML = '<div class="empty-state">Nenhum contacto guardado ainda.</div>';
+      return;
+    }
+    list.innerHTML = contacts.map((c, i) => `
+      <div class="contact-item" onclick="showContact(${i})">
+        <div>
+          <div class="contact-item-name">${c.name || 'Sem nome'}</div>
+          <div class="contact-item-sub">${[c.role, c.company].filter(Boolean).join(' · ') || c.location || '—'}</div>
+        </div>
+        <i class="ti ti-chevron-right contact-item-arrow"></i>
+      </div>`).join('');
+  }
+ 
+  function showContact(i) {
+    currentContact = contacts[i];
+    renderResults(contacts[i]);
+    document.getElementById('resultsEl').classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+ 
+  // ── Search ─────────────────────────────────────────────────────────────────
+  async function doSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query || !backendUrl) return;
+    setLoading(true, 'A pesquisar...');
+    try {
+      const res = await fetch(backendUrl + '/ai/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, contacts })
+      });
+      const data = await res.json();
+      const el = document.getElementById('searchAnswer');
+      el.textContent = data.answer || '—';
+      el.classList.add('visible');
+    } catch(e) {
+      showError('Erro na pesquisa: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  // ── Copy transcript ────────────────────────────────────────────────────────
+  function copyTranscript() {
+    navigator.clipboard.writeText(document.getElementById('transcriptOut').textContent).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.innerHTML = '<i class="ti ti-check"></i> copiado';
+      setTimeout(() => { btn.innerHTML = '<i class="ti ti-copy"></i> copiar'; }, 2000);
+    });
+  }
+ 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function showError(msg) { const e = document.getElementById('errorMsg'); e.textContent = msg; e.classList.add('visible'); }
+  function hideError() { document.getElementById('errorMsg').classList.remove('visible'); }
+  function setLoading(on, text) {
+    document.getElementById('loadingEl').classList.toggle('visible', on);
+    if (text) document.getElementById('loadingText').textContent = text;
+  }
+ 
+  // ── Init ───────────────────────────────────────────────────────────────────
+  if (contacts.length > 0) {
+    renderContactsList();
+    document.getElementById('contactsCard').style.display = 'block';
+    document.getElementById('searchCard').style.display = 'block';
+  }
+</script>
+</body>
+</html>
