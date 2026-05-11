@@ -147,7 +147,7 @@
   <div class="card">
     <span class="section-label">Backend URL</span>
     <div class="url-row">
-      <input type="text" id="backendUrl" placeholder="https://o-teu-projeto.onrender.com" />
+      <input type="text" id="backendUrl" placeholder="https://your-project.onrender.com" />
       <button class="btn-save" onclick="saveUrl()">Record</button>
     </div>
     <div class="status-row">
@@ -155,7 +155,7 @@
       <span id="statusText">Waiting for backend URL</span>
     </div>
     <div class="info-box">
-      Paste your server's URL here in Render (or <strong>http://localhost:4000</strong> for local tests).
+      Paste your server's URL here in Render (or <strong>https://ai-iob-1.onrender.com/</strong>).
     </div>
   </div>
  
@@ -230,7 +230,7 @@
     </div>
  
     <div class="card">
-      <div class="card-title"><i class="ti ti-bulb"></i> acção sugerida</div>
+      <div class="card-title"><i class="ti ti-bulb"></i> suggested action</div>
       <div class="action-box" id="fSuggestedAction"></div>
     </div>
  
@@ -279,9 +279,9 @@
       if (!res.ok) throw new Error('Status ' + res.status);
       backendUrl = val;
       document.getElementById('statusDot').className = 'dot ready';
-      document.getElementById('statusText').textContent = 'Ligado ✓';
+      document.getElementById('statusText').textContent = 'Connected ✓';
       document.getElementById('micBtn').disabled = false;
-      document.getElementById('recLabel').textContent = 'clica para gravar';
+      document.getElementById('recLabel').textContent = 'click to record';
       hideError();
     } catch(e) {
       document.getElementById('statusDot').className = 'dot error';
@@ -321,7 +321,7 @@
         stream.getTracks().forEach(t => t.stop());
         document.getElementById('sendBtn').disabled = false;
         document.getElementById('clearBtn').disabled = false;
-        document.getElementById('recLabel').textContent = 'gravação concluída — pronto para analisar';
+        document.getElementById('recLabel').textContent = 'recording complete — ready to analyz';
       };
       mediaRecorder.start(250);
       isRecording = true; seconds = 0;
@@ -412,7 +412,7 @@
       const labels = { positive: '😊 Positivo', neutral: '😐 Neutro', negative: '😕 Negativo' };
       eEl.innerHTML = `<span class="energy-badge ${cls}">${labels[c.energy] || c.energy}</span>`;
     } else {
-      eEl.textContent = 'Não mencionado'; eEl.className = 'contact-val empty';
+      eEl.textContent = 'Not mentioned'; eEl.className = 'contact-val empty';
     }
  
     // Topics
@@ -420,7 +420,7 @@
     if (c.topics && c.topics.length > 0) {
       tEl.innerHTML = `<div class="topics-row">${c.topics.map(t => `<span class="topic-tag">${t}</span>`).join('')}</div>`;
       tEl.className = 'contact-val';
-    } else { tEl.textContent = 'Não mencionado'; tEl.className = 'contact-val empty'; }
+    } else { tEl.textContent = 'Not mentioned'; tEl.className = 'contact-val empty'; }
  
     document.getElementById('fSuggestedAction').textContent = c.suggested_action || '—';
   }
@@ -431,7 +431,7 @@
       el.textContent = value;
       el.className = multiline ? 'contact-val multiline' : 'contact-val';
     } else {
-      el.textContent = 'Não mencionado';
+      el.textContent = 'Not mentioned';
       el.className = 'contact-val empty';
     }
   }
