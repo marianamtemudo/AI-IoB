@@ -253,7 +253,7 @@
   <div class="card" id="searchCard" style="display:none">
     <div class="card-title"><i class="ti ti-search"></i> search with AI</div>
     <div class="search-row">
-      <input type="text" id="searchInput" placeholder="Ex: quem trabalha em Lisboa?" onkeydown="if(event.key==='Enter') doSearch()" />
+      <input type="text" id="searchInput" placeholder="Eg: who works in Lisbon?" onkeydown="if(event.key==='Enter') doSearch()" />
       <button class="btn primary" onclick="doSearch()">↗</button>
     </div>
     <div class="search-answer" id="searchAnswer"></div>
@@ -321,14 +321,14 @@
         stream.getTracks().forEach(t => t.stop());
         document.getElementById('sendBtn').disabled = false;
         document.getElementById('clearBtn').disabled = false;
-        document.getElementById('recLabel').textContent = 'recording complete — ready to analyz';
+        document.getElementById('recLabel').textContent = 'recording complete — ready to analyze';
       };
       mediaRecorder.start(250);
       isRecording = true; seconds = 0;
       timerInterval = setInterval(tickTimer, 1000);
       const btn = document.getElementById('micBtn');
       btn.classList.add('recording'); btn.innerHTML = '<i class="ti ti-square"></i>';
-      document.getElementById('recLabel').textContent = 'a gravar... clica para parar';
+      document.getElementById('recLabel').textContent = 'recording...click on the button to stop';
       setWave(true);
     } catch(e) {
       showError('Acesso ao microfone negado: ' + e.message);
