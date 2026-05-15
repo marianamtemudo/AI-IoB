@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const groq = new Groq({
-  apiKey: process.env."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"
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 const upload = multer({
